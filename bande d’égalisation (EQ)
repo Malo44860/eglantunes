@@ -1,0 +1,91 @@
+import React from 'react';
+import { Slider } from '@/components/ui/slider';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+
+const EQFader = ({ 
+  value, 
+  onChange, 
+  label, 
+  color = "violet",
+  min = -12,
+  max = 12
+}) => {
+  
+  // Map value (-12 to 12) to percentage (0 to 100) for internal Slider
+  // Center (0dB) should be 50%
+  // range is 24.
+  // val = -12 => 0%
+  // val = 0 => 50%
+  // val = 12 => 100%
+  // pct = ((value - min) / (max - min)) * 100
+  
+  const sliderValue = ((value - min) / (max - min)) * 100;
+  
+  const handleValueChange = (vals) => {
+    const pct = vals[0];
+    const realVal = min + (pct / 100) * (max - min);
+    onChange(realVal);
+  };
+
+  const colorClasses = {
+    violet: "bg-violet-500 shadow-violet-500/50",
+    green: "bg-emerald-500 shadow-emerald-500/50",
+    blue: "bg-blue-500 shadow-blue-500/50",
+    red: "bg-red-500 shadow-red-500/50",
+    orange: "bg-orange-500 shadow-orange-500/50"
+  };
+
+  const thumbColor = colorClasses[color] || colorClasses.violet;
+
+  // Generate visual markers
+  const markers = [-12, -6, 0, 6, 12];
+  
+  return (
+    <div className="flex flex-col items-center gap-2 group">
+      <div className="relative h-48 w-12 flex justify-center">
+        {/* Background track with 3D inset effect */}
+        <div className="absolute top-0 bottom-0 w-3 bg-slate-900 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] border border-slate-800/50" />
+        
+        {/* Center Line visual */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-[2px] bg-slate-600/30 z-0" />
+
+        {/* Graduations */}
+        <div className="absolute inset-0 pointer-events-none flex flex-col justify-between py-1.5 px-[2px]">
+           {Array.from({ length: 13 }).map((_, i) => (
+             <div 
+                key={i} 
+                className={cn(
+                  "w-full h-[1px]",
+                  i % 6 === 0 ? "bg-slate-500/40 w-full ml-0" : "bg-slate-700/30 w-1/2 mx-auto"
+                )} 
+             />
+           ))}
+        </div>
+
+        <Slider
+          value={[sliderValue]}
+          min={0}
+          max={100}
+          step={1}
+          onValueChange={handleValueChange}
+          orientation="vertical"
+          className={cn(
+             "h-full z-10 w-full cursor-ns-resize",
+             "[&>.relative>.absolute]:h-5 [&>.relative>.absolute]:w-8 [&>.relative>.absolute]:-left-3", // Custom thumb sizing via CSS selection of child
+             "[&>.relative>.absolute]:rounded-sm", // Squared thumb for tech look
+             `[&>.relative>.absolute]:${thumbColor} [&>.relative>.absolute]:shadow-lg [&>.relative>.absolute]:border-0` // Dynamic color injection
+          )}
+        />
+      </div>
+
+      {/* Label and Value */}
+      <div className="text-center">
+         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</div>
+         <div className="text-[9px] font-mono text-slate-500 mt-0.5">{value > 0 ? `+${value.toFixed(1)}` : value.toFixed(1)} dB</div>
+      </div>
+    </div>
+  );
+};
+
+export default EQFader;
