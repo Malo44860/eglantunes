@@ -1,0 +1,97 @@
+// The user asked to integrate AudioLibrary but the new design focuses on individual deck loading
+// We'll keep this file but it's not the primary way to load tracks in the new layout
+// However, I'll update it to work with the new deck system just in case it's added back to a sidebar
+import React, { useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Upload, Music, Search, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAudio } from '@/context/AudioProvider';
+import { useToast } from '@/components/ui/use-toast';
+
+const AudioLibrary = () => {
+  const { loadTrack } = useAudio();
+  const { toast } = useToast();
+  const fileInputRef = useRef(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDeck, setSelectedDeck] = useState('deck-1');
+
+  const sampleLibrary = [
+    { id: 1, name: 'Techno Beat 128', category: 'Techno', duration: '03:45', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+    { id: 2, name: 'Deep House Groove', category: 'House', duration: '04:20', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
+    { id: 3, name: 'Drum & Bass Roller', category: 'DnB', duration: '02:55', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
+    { id: 4, name: 'Ambient Texture', category: 'Ambient', duration: '05:10', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
+  ];
+
+  const filteredSamples = sampleLibrary.filter(sample =>
+    sample.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    sample.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleSampleClick = (sample) => {
+    loadTrack(selectedDeck, sample.url, { name: sample.name, artist: sample.category });
+    toast({
+       title: "Track Loaded",
+       description: `${sample.name} loaded to ${selectedDeck === 'deck-1' ? 'Left Deck' : 'Right Deck'}`
+    });
+  };
+
+  return (
+    <div className="h-full flex flex-col bg-slate-900/90 backdrop-blur-xl rounded-xl border border-slate-700 p-4">
+      <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <Music className="w-5 h-5 text-violet-400" />
+        Library
+      </h2>
+
+      {/* Deck Selection */}
+      <div className="flex bg-slate-800 p-1 rounded-lg mb-4">
+          <button 
+             className={`flex-1 text-xs py-2 rounded-md font-bold transition-all ${selectedDeck === 'deck-1' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+             onClick={() => setSelectedDeck('deck-1')}
+          >
+              DECK 1 (L)
+          </button>
+          <button 
+             className={`flex-1 text-xs py-2 rounded-md font-bold transition-all ${selectedDeck === 'deck-2' ? 'bg-pink-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+             onClick={() => setSelectedDeck('deck-2')}
+          >
+              DECK 2 (R)
+          </button>
+      </div>
+
+      {/* Search */}
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <input
+          type="text"
+          placeholder="Search tracks..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-10 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+        />
+      </div>
+
+      {/* Sample List */}
+      <div className="flex-1 overflow-auto space-y-1">
+        {filteredSamples.map((sample) => (
+          <div
+            key={sample.id}
+            onClick={() => handleSampleClick(sample)}
+            className="p-3 bg-slate-800/30 rounded border border-transparent hover:border-slate-600 hover:bg-slate-800/80 cursor-pointer transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-slate-300 group-hover:text-white">{sample.name}</h4>
+                <p className="text-[10px] text-slate-500">{sample.category}</p>
+              </div>
+              <div className="text-xs text-slate-500 font-mono">
+                {sample.duration}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default AudioLibrary;
