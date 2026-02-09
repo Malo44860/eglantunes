@@ -1,0 +1,35 @@
+import React from 'react';
+import EQFader from '@/components/EQFader';
+import { useAudio } from '@/context/AudioProvider';
+
+const EQPanel = ({ deckId }) => {
+  const { decks, setDeckEQ } = useAudio();
+  const deck = decks[deckId];
+  
+  if (!deck) return null;
+
+  return (
+    <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800 backdrop-blur-sm shadow-inner flex justify-center gap-1">
+      <EQFader 
+        label="HIGH" 
+        value={deck.eq.high} 
+        onChange={(v) => setDeckEQ(deckId, 'high', v)} 
+        color="blue" 
+      />
+      <EQFader 
+        label="MID" 
+        value={deck.eq.mid} 
+        onChange={(v) => setDeckEQ(deckId, 'mid', v)} 
+        color="green" 
+      />
+      <EQFader 
+        label="LOW" 
+        value={deck.eq.low} 
+        onChange={(v) => setDeckEQ(deckId, 'low', v)} 
+        color="orange" 
+      />
+    </div>
+  );
+};
+
+export default EQPanel;
